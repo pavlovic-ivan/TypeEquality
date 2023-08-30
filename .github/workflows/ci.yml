@@ -1,0 +1,39 @@
+name: .NET Build and Test
+
+on:
+  push:
+    branches: [ migrate-to-github-actions ]
+  pull_request:
+    branches: [ migrate-to-github-actions ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        dotnet: ['2.1.x']
+        framework: ['netcoreapp2.1', 'net461']
+        include:
+          - os: windows-latest
+            dotnet: '2.1.x'
+            framework: 'net461'
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ matrix.dotnet }}
+
+    - name: Build solution
+      run: dotnet build --framework ${{ matrix.framework }} TypeEquality.sln
+
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Run tests
+    #   run: dotnet test --no-build --framework ${{ matrix.framework }}
+      run: dotnet test --no-build --framework ${{ matrix.framework }} --no-restore --test-adapter-path:. Test
